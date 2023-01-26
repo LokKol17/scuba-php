@@ -10,7 +10,7 @@
 </head>
 <body>
     <a href="./?page=login"><h1>Scuba<span>PHP</span></h1></a>
-    <form action="/?page=register&from=register" method="POST">
+    <form action="src/registerRequest.php" method="POST">
         <p>Cadastre Um Novo Usuário</p>
         <div class="mensagem-sucesso">
             <p>Mensagem de Sucesso</p>
