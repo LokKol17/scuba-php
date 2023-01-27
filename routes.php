@@ -8,8 +8,13 @@ session_start();
 
 $page = $_GET['page'];
 $from = null;
+$email = null;
+
 if (isset($_GET['from'])) {
     $from = $_GET['from'];
+}
+if (isset($_GET['email'])) {
+    $email = $_GET['email'];
 }
 
 switch ($page) {
@@ -18,6 +23,9 @@ switch ($page) {
         break;
     case 'register':
         Controller::do_register($page, $from);
+        break;
+    case 'mail-validation':
+        Controller::do_validation($page, $from, $email);
         break;
     default:
         Controller::do_not_found($page);

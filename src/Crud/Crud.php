@@ -12,11 +12,12 @@ class Crud
         $content = [
             'name' => $user->getName(),
             'email' => $user->getEmail(),
-            'password' => $user->getPassword()
+            'password' => $user->getPassword(),
+            'email-confirm' => false
         ];
 
         $file = file_get_contents($dataPath);
-        $data = json_decode($file);
+        $data = json_decode($file, true);
         $data[] = $content;
         $data = json_encode($data);
         file_put_contents($dataPath, $data);
@@ -35,5 +36,29 @@ class Crud
         }
 
         return $emails;
+    }
+
+    public static function crud_validateMail(string $email): bool
+    {
+        $emails = self::crud_getEmails();
+        if (!in_array($email, $emails)) {
+            throw new \DomainException('Email inexistente');
+        }
+        $dataPath = __DIR__ . '/../../data/users.json';
+
+        $file = file_get_contents($dataPath);
+        $data = json_decode($file, true);
+
+        $i = null;
+        foreach ($data as $index => $user) {
+            if ($user['email'] !== $email) {
+                continue;
+            }
+            $i = $index;
+        }
+
+        $data[$i]['email-confirm'] = true;
+        file_put_contents($dataPath, json_encode($data));
+        return true;
     }
 }

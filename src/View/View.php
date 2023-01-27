@@ -10,7 +10,6 @@ class View
         $template = $template . '.view';
         $html = file_get_contents( __DIR__ . '/../../view/' . $template);
         $pos = strpos($html, 'Mensagem de Erro');
-        //TODO: FAZER ESSA MENSAGEM CHEGAR POR PARÂMETRO, E NULL POR PADRÃO
         if (is_null($mensagem)) $mensagem = '';
         if (is_null($mensagemSucesso)) $mensagemSucesso = '';
         $html = str_replace('Mensagem de Erro', $mensagem, $html);
