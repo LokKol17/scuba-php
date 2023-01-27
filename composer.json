@@ -8,7 +8,9 @@
             "email": "david.meth@live.com"
         }
     ],
-    "require": {},
+    "require": {
+      "ext-mbstring": "*"
+    },
     "autoload": {
         "psr-4": {
             "Scuba\\Web\\": "src/"

@@ -2,22 +2,44 @@
 
 namespace Scuba\Web\Controller;
 
+use Scuba\Web\Crud\Crud;
 use Scuba\Web\View\View;
 
-require_once "vendor/autoload.php";
+require_once __DIR__ . "/../../vendor/autoload.php";
 
 class Controller
 {
-    public static function do_register($page): void
+    public static function do_register($page, $from): void
     {
-        $template = View::render_view($page);
+        $message = null;
+        if (isset($_POST['person'])) {
+            $validator = new RequestValidator($_POST['person']);
+            try {
+                if ($validator->validateRegister() === false) {
+                    header('Location: /?page=register');
+                } else {
+                    Crud::crud_create($validator->validateRegister());
+                    header('Location: /?page=login&from=register');
+                }
+            } catch (\DomainException $exception) {
+                $message = $_SESSION['message'];
+            }
+        }
+
+        $template = View::render_view($page, $message);
         echo $template;
         header(header: '', response_code: 200);
     }
 
-    public static function do_login($page): void
+    public static function do_login($page, $from): void
     {
-        $template = View::render_view($page);
+        $messagemSucesso = null;
+
+        if ($from == 'register') {
+            $messagemSucesso = 'Você ainda precisa confirmar seu email!';
+        }
+
+        $template = View::render_view($page, null, $messagemSucesso );
         echo $template;
         header(header: '', response_code: 200);
     }
