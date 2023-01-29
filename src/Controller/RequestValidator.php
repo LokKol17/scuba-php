@@ -29,8 +29,12 @@ class RequestValidator
         return new User(
             $this->person['name'],
             $this->person['email'],
-            $this->person['password'],
+            password_hash($this->person['password'], PASSWORD_BCRYPT),
         );
-
     }
+
+//    public function validateLogin(): bool
+//    {
+//
+//    }
 }

@@ -2,6 +2,7 @@
 
 namespace Scuba\Web\Controller;
 
+use Scuba\Web\Auth\Auth;
 use Scuba\Web\Crud\Crud;
 use Scuba\Web\Crypt\Crypt;
 use Scuba\Web\Mail\Mail;
@@ -23,8 +24,7 @@ class Controller
                     header('Location: /?page=register');
                 } else {
                     Crud::crud_create($validator->validateRegister());
-                    $crypt = Crypt::ssl_crypt($_POST['person']['email']);
-                    (new Mail())->sendMail($_POST['person']['email'], $_POST['person']['name'], $crypt);
+                    SendMail::sendMailTo($_POST['person']);
                     header('Location: /?page=login&from=register');
                 }
             } catch (\DomainException $exception) {
@@ -39,18 +39,40 @@ class Controller
 
     public static function do_login($page, $from): void
     {
-        $messagemSucesso = null;
+        $mensagemSucesso = null;
+        $errorMessage = null;
 
         switch ($from) {
             case 'register':
-                $messagemSucesso = 'Você ainda precisa confirmar seu email!';
+                $mensagemSucesso = 'Você ainda precisa confirmar seu email!';
                 break;
             case 'mail-validation':
-                $messagemSucesso = 'Email confirmado!';
+                $mensagemSucesso = 'Email confirmado!';
+                break;
+            case 'login':
+                $errorMessage = 'Email ou senha incorretos';
                 break;
         }
 
-        $template = View::render_view($page, null, $messagemSucesso );
+        if (isset($_POST['person'])) {
+            try {
+                $auth = new Auth();
+                if ($auth->authentication($_POST['person']['email'], $_POST['person']['password']) === true) {
+                    $users = Crud::crud_getUsers();
+                    foreach ($users as $user) {
+                        if ($user['email'] === $_POST['person']['email']) {
+                            $_SESSION['auth'] = $user['name'].'-'.$user['email'];
+                        }
+                    }
+                    header('Location: /?page=home');
+                }
+            } catch (\DomainException $exception) {
+                header('Location: /?page=login&from=login');
+            }
+        }
+
+
+        $template = View::render_view($page, $errorMessage, $mensagemSucesso);
         echo $template;
         header(header: '', response_code: 200);
     }
@@ -70,6 +92,34 @@ class Controller
         };
         if (Crud::crud_validateMail($email)) {
             header('Location: /?page=login&from=mail-validation');
+        } else {
+            throw new \DomainException('Ocorreu um erro');
+        }
+    }
+
+    public static function do_home(mixed $page)
+    {
+        $token = $_SESSION['auth'];
+        $data = explode('-', $token);
+        $template = View::render_view($page, dados: $data);
+        echo $template;
+        header(header: '', response_code: 200);
+    }
+
+    public static function do_logout()
+    {
+        session_destroy();
+        header('Location: /?page=login');
+    }
+
+    public static function do_delete_account()
+    {
+        $token = $_SESSION['auth'];
+        $data = explode('-', $token);
+        $email = $data[1];
+        if (Crud::crud_delete($email)) {
+            session_destroy();
+            header('Location: /?page=login');
         } else {
             throw new \DomainException('Ocorreu um erro');
         }

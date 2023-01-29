@@ -1,12 +1,14 @@
 <?php
 
+use Scuba\Web\Auth\Auth;
 use Scuba\Web\Controller\Controller;
+use Scuba\Web\Crud\Crud;
 
 require_once "vendor/autoload.php";
 
 session_start();
 
-$page = $_GET['page'];
+$page = $_GET['page'] ?? 'default';
 $from = null;
 $email = null;
 
@@ -27,9 +29,31 @@ switch ($page) {
     case 'mail-validation':
         Controller::do_validation($page, $from, $email);
         break;
+    case 'logout':
+        Controller::do_logout();
+        break;
+    case 'delete-account':
+        Controller::do_delete_account();
+        break;
+    case 'home':
+    case 'default':
+        if (userIsLogged()) {
+            Controller::do_home('home');
+        } else {
+            Controller::do_login('login', $from);
+        }
+        break;
     default:
-        Controller::do_not_found($page);
+        Controller::do_not_found();
+    break;
 }
 
-session_destroy();
-die();
+function userIsLogged(): bool
+{
+    $users = Crud::crud_getUsers();
+    foreach ($users as $user) {
+        if (isset($_SESSION['auth']) && str_contains($_SESSION['auth'], $user['name']) && str_contains($_SESSION['auth'], $user['email']))
+            return true;
+    }
+    return false;
+}

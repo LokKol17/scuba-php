@@ -61,4 +61,34 @@ class Crud
         file_put_contents($dataPath, json_encode($data));
         return true;
     }
+
+    public static function crud_getUsers(): array
+    {
+        $dataPath = __DIR__ . '/../../data/users.json';
+
+        $file = file_get_contents($dataPath);
+        return json_decode($file, true);
+    }
+
+    public static function crud_delete(string $email)
+    {
+        $dataPath = __DIR__ . '/../../data/users.json';
+
+        $file = file_get_contents($dataPath);
+        $data = json_decode($file, true);
+
+        $i = null;
+        $set = false;
+        foreach ($data as $index => $user) {
+            if ($user['email'] !== $email) {
+                continue;
+            }
+            $i = $index;
+            $set = true;
+        }
+
+        unset($data[$i]);
+        file_put_contents($dataPath, json_encode($data));
+        return $set;
+    }
 }
